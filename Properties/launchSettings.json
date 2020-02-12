@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RSSEQCompiler": {
+      "commandName": "Project",
+      "commandLineArgs": "dizzyd"
+    }
+  }
+}
