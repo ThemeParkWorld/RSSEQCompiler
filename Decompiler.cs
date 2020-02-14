@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace RSSEQCompiler
 {
@@ -39,7 +37,7 @@ namespace RSSEQCompiler
             for (int i = 0; i < 4; ++i)
             {
                 char[] paddingChars = binaryReader.ReadChars(4);
-                if (!Enumerable.SequenceEqual(paddingChars, new[] {'P', 'a', 'd', ' '}))
+                if (!Enumerable.SequenceEqual(paddingChars, new[] { 'P', 'a', 'd', ' ' }))
                     Log("Invalid padding!");
             }
 
@@ -64,8 +62,8 @@ namespace RSSEQCompiler
 
                 if ((currentValue >> 24 & 0xFF) == 0x80)
                 {
-                    if ((Opcode) currentOpcode == Opcode.BRANCH || (Opcode) currentOpcode == Opcode.BRANCH_NZ ||
-                        (Opcode) currentOpcode == Opcode.BRANCH_PV || (Opcode) currentOpcode == Opcode.BRANCH_NZ ||
+                    if ((Opcode)currentOpcode == Opcode.BRANCH || (Opcode)currentOpcode == Opcode.BRANCH_NZ ||
+                        (Opcode)currentOpcode == Opcode.BRANCH_PV || (Opcode)currentOpcode == Opcode.BRANCH_NZ ||
                         (Opcode)currentOpcode == Opcode.JSR)
                     {
                         jumps.Add(currentOperands[0] + (instructions[^1].GetCount() - 1));
@@ -91,7 +89,7 @@ namespace RSSEQCompiler
                 }
             }
 
-            
+
             int currentCount = 0;
             for (int i = 0; i < instructions.Count; ++i)
             {

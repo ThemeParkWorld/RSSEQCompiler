@@ -34,7 +34,7 @@ namespace RSSEQCompiler
                 if (opcodeName.Length < 8)
                     padding += "\t";
                 //return $"{opcodeName}{padding}{operandString}";
-                
+
                 return $"{(Opcode)opcode} ({opcode}): {operandString}";
             }
             else
