@@ -16,5 +16,7 @@ namespace RSSEQCompiler
         ANIM_Repair = 10,
         EVT_BREAKDOWN = 43,
         EVT_OBSERVE3 = 133,
+        EVT_BELLYBOUNCE_DEFLATE = 183,
+        EVT_ARCADE = 104
     }
 }

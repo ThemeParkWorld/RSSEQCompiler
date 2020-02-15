@@ -54,7 +54,7 @@ namespace RSSEQCompiler
         LIMBO = 58,
         UNLIMBO = 59,
         FORCEUNLIMBO = 60,
-        ADDOBJ__4 = 61,
+        INLIMBO = 61,
         LIMBOSPACE = 62,
         SPAWNCHILD = 63,
         SPAWNSOUND = 64,

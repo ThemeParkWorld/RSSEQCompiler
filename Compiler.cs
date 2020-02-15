@@ -13,6 +13,11 @@ namespace RSSEQCompiler
         private List<string> variables = new List<string>();
         private int instructionCount;
 
+        private int stackSize;
+        private int bounceSize;
+        private int walkSize;
+        private int limboSize;
+
         public Compiler(string sourceFilePath, string destFilePath)
         {
             Compile(sourceFilePath, destFilePath);
@@ -64,8 +69,7 @@ namespace RSSEQCompiler
 
                 if (opcode == "variable")
                     continue;
-
-
+                
                 if (opcode.StartsWith("."))
                 {
                     currentPos--;
@@ -83,12 +87,12 @@ namespace RSSEQCompiler
         {
             // Write file header
             binaryWriter.Write(new char[] { 'R', 'S', 'S', 'E', 'Q', (char)0x0F, (char)0x01, (char)0x00 });
-            binaryWriter.Write((int)0x11);
-            binaryWriter.Write((int)0x12);
-            binaryWriter.Write((int)0x32);
-            binaryWriter.Write((int)0x0);
-            binaryWriter.Write((int)0x0);
-            binaryWriter.Write((int)0x12);
+            binaryWriter.Write((int)0x11); // String count?
+            binaryWriter.Write((int)0x12); // Stack size
+            binaryWriter.Write((int)0x32); // Unknown 1
+            binaryWriter.Write((int)0x0); // Unknown 2
+            binaryWriter.Write((int)0x0); // unknown 3
+            binaryWriter.Write((int)0x12); // Walk size
 
             for (int i = 0; i < 4; ++i)
             {
@@ -104,7 +108,7 @@ namespace RSSEQCompiler
             // Write instructions
             foreach (var line in fileContents)
             {
-                if (line.StartsWith(";") || line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+                if (line.StartsWith(";")|| string.IsNullOrWhiteSpace(line))
                     continue;
 
                 var lineSplit = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
@@ -112,6 +116,31 @@ namespace RSSEQCompiler
                 var operands = new string[lineSplit.Length - 1];
 
                 Array.Copy(lineSplit, 1, operands, 0, lineSplit.Length - 1);
+                
+                if (opcode.StartsWith("#"))
+                {
+                    switch (opcode)
+                    {
+                        case "#setstack":
+                            stackSize = int.Parse(operands[0]);
+                            break;
+                        case "#setwalk":
+                            walkSize = int.Parse(operands[0]);
+                            break;
+                        case "#setlimbo":
+                            limboSize = int.Parse(operands[0]);
+                            break;
+                        case "#setbounce":
+                            bounceSize = int.Parse(operands[0]);
+                            break;
+                        case "#include": break; // Ignore includes, since they're useless to us
+                        default:
+                            Console.WriteLine($"Unknown preprocessor instruction {opcode}");
+                            break;
+                    }
+
+                    continue;
+                }
 
                 if (opcode.StartsWith(".") && operands.Length > 0)
                 {
@@ -241,7 +270,26 @@ namespace RSSEQCompiler
             WriteHeader(binaryWriter);
             WriteInstructions(binaryWriter);
             WriteStringTable(binaryWriter);
+            WriteHeaderInfo(binaryWriter);
             WriteInstructionCount(binaryWriter);
+        }
+
+        private void WriteHeaderInfo(BinaryWriter binaryWriter)
+        {
+            Dictionary<int, int> headerValues = new Dictionary<int, int>()
+            {
+                {0x08, variables.Count},
+                {0x0C, stackSize},
+                {0x14, limboSize},
+                {0x18, bounceSize},
+                {0x1C, walkSize}
+            };
+
+            foreach (var headerValue in headerValues)
+            {
+                binaryWriter.Seek(headerValue.Key, SeekOrigin.Begin);
+                binaryWriter.Write(headerValue.Value);
+            }
         }
 
         private void WriteInstructionCount(BinaryWriter binaryWriter)

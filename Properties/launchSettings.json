@@ -2,7 +2,7 @@
   "profiles": {
     "RSSEQCompiler": {
       "commandName": "Project",
-      "commandLineArgs": "dizzyd"
+      "commandLineArgs": "arc2x3"
     }
   }
 }
