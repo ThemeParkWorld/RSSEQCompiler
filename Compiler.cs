@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection.Metadata.Ecma335;
 
 namespace RSSEQCompiler
 {
     public class Compiler
     {
         private string[] fileContents;
-        private Dictionary<string, int> branches;
-        private List<string> strings = new List<string>();
-        private List<string> variables = new List<string>();
-        private int instructionCount;
+        private Dictionary<string, int> branches = new Dictionary<string, int>();
 
-        private int stackSize;
-        private int bounceSize;
-        private int walkSize;
-        private int limboSize;
+        private readonly List<string> strings = new List<string>();
+        private readonly List<string> variables = new List<string>();
+
+        private int instructionCount;
+        private int stackSize, bounceSize, walkSize, limboSize;
 
         public Compiler(string sourceFilePath, string destFilePath)
         {
@@ -31,8 +28,6 @@ namespace RSSEQCompiler
 
         Dictionary<string, int> FindAllBranches()
         {
-            Dictionary<string, int> branches = new Dictionary<string, int>();
-
             int currentPos = 1; // starts at 1 for some dumb reason. bullfrog really like doing this?
 
             // First, go through the source file and find all branches
@@ -43,9 +38,7 @@ namespace RSSEQCompiler
 
                 var lineSplit = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                 var opcode = lineSplit[0];
-                var operands = new string[lineSplit.Length - 1];
-                
-                Array.Copy(lineSplit, 1, operands, 0, lineSplit.Length - 1);
+                var operands = lineSplit[1..]; // Remove opcode from line - rest are operands
 
                 int operandCount = 0;
                 bool isCurrentlyString = false;
@@ -69,7 +62,7 @@ namespace RSSEQCompiler
 
                 if (opcode == "variable")
                     continue;
-                
+
                 if (opcode.StartsWith("."))
                 {
                     currentPos--;
@@ -90,8 +83,8 @@ namespace RSSEQCompiler
             binaryWriter.Write((int)0x11); // String count?
             binaryWriter.Write((int)0x12); // Stack size
             binaryWriter.Write((int)0x32); // Unknown 1
-            binaryWriter.Write((int)0x0); // Unknown 2
-            binaryWriter.Write((int)0x0); // unknown 3
+            binaryWriter.Write((int)0x0); // Limbo size
+            binaryWriter.Write((int)0x0); // Bounce size
             binaryWriter.Write((int)0x12); // Walk size
 
             for (int i = 0; i < 4; ++i)
@@ -108,15 +101,13 @@ namespace RSSEQCompiler
             // Write instructions
             foreach (var line in fileContents)
             {
-                if (line.StartsWith(";")|| string.IsNullOrWhiteSpace(line))
+                if (line.StartsWith(";") || string.IsNullOrWhiteSpace(line))
                     continue;
 
                 var lineSplit = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                 var opcode = lineSplit[0];
-                var operands = new string[lineSplit.Length - 1];
+                var operands = lineSplit[1..]; // Remove opcode from line - rest are operands
 
-                Array.Copy(lineSplit, 1, operands, 0, lineSplit.Length - 1);
-                
                 if (opcode.StartsWith("#"))
                 {
                     switch (opcode)
@@ -193,18 +184,18 @@ namespace RSSEQCompiler
                             }
                             else
                             {
-                                bool found = false;
+                                bool isDefined = false;
                                 foreach (var scriptDefEnum in scriptDefEnums)
                                 {
                                     if (Enum.TryParse(scriptDefEnum, operand, out object objResult))
                                     {
                                         binaryWriter.Write((int)objResult);
                                         Console.WriteLine($"{operand} = {(int)objResult}");
-                                        found = true;
+                                        isDefined = true;
                                     }
                                 }
 
-                                if (!found)
+                                if (!isDefined)
                                 {
                                     if (variables.Contains(operand))
                                     {
@@ -244,16 +235,13 @@ namespace RSSEQCompiler
 
         void WriteStringTable(BinaryWriter binaryWriter)
         {
-            foreach (var str in strings)
+            var valuesToWrite = strings;
+            valuesToWrite.AddRange(variables);
+
+            foreach (var value in valuesToWrite)
             {
-                binaryWriter.Write(str.Length + 1);
-                binaryWriter.Write(str.ToCharArray());
-                binaryWriter.Write((byte)0x00);
-            }
-            foreach (var variable in variables)
-            {
-                binaryWriter.Write(variable.Length + 1);
-                binaryWriter.Write(variable.ToCharArray());
+                binaryWriter.Write(value.Length + 1);
+                binaryWriter.Write(value.ToCharArray());
                 binaryWriter.Write((byte)0x00);
             }
         }
@@ -262,7 +250,6 @@ namespace RSSEQCompiler
         {
             using var destFileStream = new FileStream(destFilePath, FileMode.OpenOrCreate);
             using var binaryWriter = new BinaryWriter(destFileStream);
-            int currentPos = 0;
 
             ReadFileContents(sourceFilePath);
             branches = FindAllBranches();
@@ -278,6 +265,7 @@ namespace RSSEQCompiler
         {
             Dictionary<int, int> headerValues = new Dictionary<int, int>()
             {
+                // Offset, value
                 {0x08, variables.Count},
                 {0x0C, stackSize},
                 {0x14, limboSize},
