@@ -13,7 +13,7 @@ namespace RSSEQCompiler
         private readonly List<string> variables = new List<string>();
 
         private int instructionCount;
-        private int stackSize, bounceSize, walkSize, limboSize;
+        private int stackSize, bounceSize, walkSize, limboSize, timeSlice = 50;
 
         public Compiler(string sourceFilePath, string destFilePath)
         {
@@ -82,7 +82,7 @@ namespace RSSEQCompiler
             binaryWriter.Write(new char[] { 'R', 'S', 'S', 'E', 'Q', (char)0x0F, (char)0x01, (char)0x00 });
             binaryWriter.Write((int)0x11); // String count?
             binaryWriter.Write((int)0x12); // Stack size
-            binaryWriter.Write((int)0x32); // Unknown 1
+            binaryWriter.Write((int)0x32); // Time slice - almost always 50 (haven't seen the preprocessor directive for this one yet).
             binaryWriter.Write((int)0x0); // Limbo size
             binaryWriter.Write((int)0x0); // Bounce size
             binaryWriter.Write((int)0x12); // Walk size
@@ -268,6 +268,7 @@ namespace RSSEQCompiler
                 // Offset, value
                 {0x08, variables.Count},
                 {0x0C, stackSize},
+                {0x10, timeSlice},
                 {0x14, limboSize},
                 {0x18, bounceSize},
                 {0x1C, walkSize}
