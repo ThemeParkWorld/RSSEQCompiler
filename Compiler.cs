@@ -15,6 +15,8 @@ namespace RSSEQCompiler
         private int instructionCount;
         private int stackSize, bounceSize, walkSize, limboSize, timeSlice = 50;
 
+        public Dictionary<string, int> unknownIdentifiers = new Dictionary<string, int>();
+
         public Compiler(string sourceFilePath, string destFilePath)
         {
             Compile(sourceFilePath, destFilePath);
@@ -33,7 +35,7 @@ namespace RSSEQCompiler
             // First, go through the source file and find all branches
             foreach (var line in fileContents)
             {
-                if (line.StartsWith(";") || line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+                if (line.StartsWith(";") || line.StartsWith("#") || line.StartsWith("//") || string.IsNullOrWhiteSpace(line))
                     continue;
 
                 var lineSplit = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
@@ -101,7 +103,7 @@ namespace RSSEQCompiler
             // Write instructions
             foreach (var line in fileContents)
             {
-                if (line.StartsWith(";") || string.IsNullOrWhiteSpace(line))
+                if (line.StartsWith(";") || line.StartsWith("//") || string.IsNullOrWhiteSpace(line))
                     continue;
 
                 var lineSplit = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
@@ -146,12 +148,12 @@ namespace RSSEQCompiler
                 {
                     variables.Add(operands[0]);
                 }
-                else if (!opcode.StartsWith("."))
+                else if (!opcode.StartsWith(".") && !opcode.StartsWith(";") && !opcode.StartsWith("//"))
                 {
                     binaryWriter.Write((short)(int)Enum.Parse(typeof(Opcode), opcode));
                     binaryWriter.Write(new byte[] { 0x00, 0x80 });
 
-                    Type[] scriptDefEnums = { typeof(ScriptDefs), typeof(SfxEvent), typeof(Particles) };
+                    Type[] scriptDefEnums = { typeof(ScriptDefs), typeof(Events), typeof(Particles) };
 
                     bool isParsingString = false;
                     int currentString = 0;
@@ -161,8 +163,9 @@ namespace RSSEQCompiler
                     // Write operands
                     foreach (var operand in operands)
                     {
-                        if (operand.StartsWith(";"))
+                        if (operand.StartsWith(";") || operand.StartsWith("//"))
                             break;
+
                         if (operand.StartsWith("\""))
                         {
                             strings.Add("");
@@ -190,7 +193,6 @@ namespace RSSEQCompiler
                                     if (Enum.TryParse(scriptDefEnum, operand, out object objResult))
                                     {
                                         binaryWriter.Write((int)objResult);
-                                        Console.WriteLine($"{operand} = {(int)objResult}");
                                         isDefined = true;
                                     }
                                 }
@@ -210,7 +212,8 @@ namespace RSSEQCompiler
                                     else
                                     {
                                         binaryWriter.Write((int)0);
-                                        Console.WriteLine($"Unknown identifier {operand}");
+                                        if (!unknownIdentifiers.ContainsKey(operand))
+                                            unknownIdentifiers.Add(operand, (int)binaryWriter.BaseStream.Position);
                                     }
                                 }
                             }
@@ -226,6 +229,11 @@ namespace RSSEQCompiler
                         else if (isParsingString)
                         {
                             strings[currentString] += " ";
+                        }
+
+                        if (operand.EndsWith(";"))
+                        {
+                            break;
                         }
                     }
                 }
