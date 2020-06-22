@@ -20,11 +20,11 @@ namespace RSSEQCompiler
 
             if (args.Length < 1)
             {
-                Console.WriteLine("RSEEQ (de)compiler");
-                Console.WriteLine("Usage: RSSEQCompiler.exe [Filename] (flags)");
+                Console.WriteLine("RSEEQ compiler & decompiler");
+                Console.WriteLine("Usage: RSSEQCompiler.exe [-d|-a] filename");
                 Console.WriteLine("Available flags:");
                 Console.WriteLine("\t-d - decompile");
-                Console.WriteLine("\t-a - compile all in folder");
+                Console.WriteLine("\t-a - compile all files in directory");
                 return;
             }
 
@@ -82,6 +82,7 @@ namespace RSSEQCompiler
 
                 var newIdentifiersAsList = newIdentifiers.ToList();
                 newIdentifiersAsList.Sort((a, b) => { return a.Value.CompareTo(b.Value); });
+
                 foreach (var identifier in newIdentifiersAsList)
                 {
                     Console.WriteLine($"{identifier.Key} = {identifier.Value},");

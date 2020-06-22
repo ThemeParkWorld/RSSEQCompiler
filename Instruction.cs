@@ -40,7 +40,7 @@ namespace RSSEQCompiler
             else
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                return $"!!! {opcode}: {operandString}";
+                return $"Unknown opcode {opcode}: {operandString}";
             }
         }
     }
