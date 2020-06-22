@@ -2,7 +2,7 @@
   "profiles": {
     "RSSEQCompiler": {
       "commandName": "Project",
-      "commandLineArgs": "arc2x3"
+      "commandLineArgs": "Bouncy"
     }
   }
 }

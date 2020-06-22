@@ -9,7 +9,7 @@ namespace RSSEQCompiler
     {
         public Decompiler(string sourceFilePath, string destFilePath)
         {
-            this.Decompile(sourceFilePath);
+            Decompile(sourceFilePath);
         }
 
         private void Decompile(string sourceFilePath)
@@ -24,7 +24,7 @@ namespace RSSEQCompiler
              * 24 bytes - unknown
              * 16 bytes - "Pad Pad Pad Pad"
              */
-            // Write to console as we go along
+            // Write to console as we go along for confirmation / debug purposes
             Log("Checking for magic number");
             char[] magicNumber = binaryReader.ReadChars(5);
             if (!Enumerable.SequenceEqual(magicNumber, new[] { 'R', 'S', 'S', 'E', 'Q' }))
@@ -62,9 +62,9 @@ namespace RSSEQCompiler
 
                 if ((currentValue >> 24 & 0xFF) == 0x80)
                 {
-                    if ((Opcode)currentOpcode == Opcode.BRANCH || (Opcode)currentOpcode == Opcode.BRANCH_NZ ||
+                    if ((Opcode)currentOpcode == Opcode.BRANCH || (Opcode)currentOpcode == Opcode.BRANCH_NV ||
                         (Opcode)currentOpcode == Opcode.BRANCH_PV || (Opcode)currentOpcode == Opcode.BRANCH_NZ ||
-                        (Opcode)currentOpcode == Opcode.JSR)
+                        (Opcode)currentOpcode == Opcode.BRANCH_Z || (Opcode)currentOpcode == Opcode.JSR)
                     {
                         jumps.Add(currentOperands[0] + (instructions[^1].GetCount() - 1));
                     }
@@ -89,7 +89,6 @@ namespace RSSEQCompiler
                 }
             }
 
-
             int currentCount = 0;
             for (int i = 0; i < instructions.Count; ++i)
             {
@@ -107,7 +106,6 @@ namespace RSSEQCompiler
             }
             Log($"Count: {currentCount}");
         }
-
 
         private void Log(string str)
         {

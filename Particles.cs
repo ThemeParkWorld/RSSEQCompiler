@@ -1,4 +1,8 @@
-﻿namespace RSSEQCompiler
+﻿// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
+// ReSharper disable IdentifierTypo
+
+namespace RSSEQCompiler
 {
     enum Particles
     {
