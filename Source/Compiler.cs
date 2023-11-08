@@ -271,6 +271,8 @@ namespace RSSEQCompiler
             ReadFileContents(sourceFilePath);
             branches = FindAllBranches();
 
+            destFileStream.SetLength(0);
+
             WriteHeader(binaryWriter);
             WriteInstructions(binaryWriter);
             WriteStringTable(binaryWriter);

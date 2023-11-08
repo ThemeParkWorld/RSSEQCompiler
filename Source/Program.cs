@@ -53,7 +53,7 @@ namespace RSSEQCompiler
                     if (file.ToLower().EndsWith(".rss"))
                     {
                         string fileNoExt = Path.GetFileNameWithoutExtension(file);
-                        Compiler c = new Compiler($"{fileNoExt}.rss", $"Recompiled_{fileNoExt}.RSE");
+                        Compiler c = new Compiler($"{fileNoExt}.rss", $"{fileNoExt}.RSE");
 
                         Console.WriteLine($"Compiled {file}");
 
@@ -91,7 +91,7 @@ namespace RSSEQCompiler
             else if (programMode == ProgramMode.Compile)
             {
                 Console.WriteLine($"Compiling {args[0]}.rss");
-                Compiler c = new Compiler($"{args[0]}.rss", $"Recompiled_{args[0]}.RSE");
+                Compiler c = new Compiler($"{args[0]}.rss", $"{args[0]}.RSE");
             }
         }
     }
